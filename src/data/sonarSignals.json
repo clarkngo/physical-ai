@@ -1,0 +1,8 @@
+[
+  { "distance": 4, "strength": 0.35 },
+  { "distance": 9, "strength": 0.51 },
+  { "distance": 14, "strength": 0.62 },
+  { "distance": 22, "strength": 0.73 },
+  { "distance": 30, "strength": 0.55 },
+  { "distance": 36, "strength": 0.44 }
+]

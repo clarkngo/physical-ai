@@ -1,0 +1,6 @@
+[
+  { "lat": 47.6062, "lon": -122.3321, "fuel": 82, "label": "Seattle Harbor" },
+  { "lat": 47.6205, "lon": -122.3493, "fuel": 80, "label": "Fisherman's Terminal" },
+  { "lat": 47.6412, "lon": -122.3875, "fuel": 77, "label": "Shilshole Bay" },
+  { "lat": 47.6663, "lon": -122.4044, "fuel": 74, "label": "Open Water Transit" }
+]
