@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: #f2f2f2;
+  background-color: #001a36;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 10%, rgba(0, 163, 224, 0.14), transparent 32%),
+    radial-gradient(circle at 85% 5%, rgba(46, 144, 250, 0.1), transparent 28%),
+    linear-gradient(180deg, #031226 0%, #020f20 100%);
+}
+
+.card-glow {
+  box-shadow: 0 0 0 1px rgba(0, 163, 224, 0.2), 0 18px 80px rgba(0, 45, 98, 0.45);
+}
+
+.simulator-panel {
+  background: linear-gradient(160deg, rgba(2, 26, 54, 0.95), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(0, 163, 224, 0.22);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
+}
+
+.glass-card {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.7));
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  backdrop-filter: blur(8px);
+}
+
+.metric-card {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.9));
+  border: 1px solid rgba(51, 65, 85, 0.95);
+}
+
+/* ── Physical AI animation keyframes ─────────────────────────────────── */
+
+@keyframes radar-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes sonar-expand {
+  0%   { transform: scale(0.05); opacity: 0.8; }
+  100% { transform: scale(1);    opacity: 0; }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-9px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 1; }
+}
+
+@keyframes data-stream {
+  0%   { stroke-dashoffset: 200; opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { stroke-dashoffset: 0;   opacity: 0; }
+}
+
+@keyframes wave-shift {
+  0%   { d: path("M0,30 C250,5 500,55 750,30 C900,15 1050,45 1200,30 L1200,60 L0,60Z"); }
+  50%  { d: path("M0,42 C250,68 500,12 750,42 C900,58 1050,28 1200,42 L1200,60 L0,60Z"); }
+  100% { d: path("M0,30 C250,5 500,55 750,30 C900,15 1050,45 1200,30 L1200,60 L0,60Z"); }
+}
+
+@keyframes blip-appear {
+  0%   { opacity: 0; r: 1; }
+  30%  { opacity: 1; r: 3.5; }
+  70%  { opacity: 0.7; r: 2.5; }
+  100% { opacity: 0; r: 1; }
+}
+
+/* ── Utility animation classes ───────────────────────────────────────── */
+
+.radar-sweep-div {
+  animation: radar-rotate 4s linear infinite;
+  transform-origin: center center;
+}
+
+.float-particle {
+  animation: float-y 3s ease-in-out infinite;
+}
+
+.glow-pulse {
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-track {
+  animation: ticker-scroll 48s linear infinite;
+}
+.ticker-track:hover {
+  animation-play-state: paused;
+}
