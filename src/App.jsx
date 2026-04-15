@@ -76,25 +76,18 @@ export default function App() {
       <header className="glass-card sticky top-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
         <NavBrand />
         <nav className="flex items-center gap-2 text-sm">
-          {[
-            { to: '/',           label: 'Home' },
-            { to: '/simulators', label: 'Simulators' },
-          ].map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end
-              className={({ isActive }) =>
-                `rounded-lg px-3 py-1.5 transition ${
-                  isActive
-                    ? 'bg-pacificCyan text-slate-950 font-semibold'
-                    : 'text-slate-200 hover:bg-slate-800/80'
-                }`
-              }
-            >
-              {label}
-            </NavLink>
-          ))}
+          <NavLink
+            to="/simulators"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-1.5 transition ${
+                isActive
+                  ? 'bg-pacificCyan text-slate-950 font-semibold'
+                  : 'text-slate-200 hover:bg-slate-800/80'
+              }`
+            }
+          >
+            Simulators
+          </NavLink>
         </nav>
       </header>
 
