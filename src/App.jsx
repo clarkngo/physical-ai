@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import AutonomousPage from './components/AutonomousPage';
 import Hero from './components/Hero';
-import HardwareLayer from './components/HardwareLayer';
 import LearningPathway from './components/LearningPathway';
 import PhysicalAIHome from './components/PhysicalAIHome';
 import ResearchRepo from './components/ResearchRepo';
@@ -59,8 +59,15 @@ function MaritimePage() {
       <Hero />
       <TelemetryTicker />
       <LearningPathway />
-      <HardwareLayer />
       <ResearchRepo />
+    </PageWrapper>
+  );
+}
+
+function AutonomousPageWrapper() {
+  return (
+    <PageWrapper>
+      <AutonomousPage />
     </PageWrapper>
   );
 }
@@ -92,9 +99,10 @@ export default function App() {
         <NavBrand />
         <nav className="flex items-center gap-2 text-sm">
           {[
-            { to: '/maritime',   label: 'Maritime' },
-            { to: '/simulators', label: 'Simulators' },
-            { to: '/ros',        label: 'ROS' },
+            { to: '/maritime',    label: 'Maritime'   },
+            { to: '/autonomous',  label: 'Autonomous' },
+            { to: '/simulators',  label: 'Simulators' },
+            { to: '/ros',         label: 'ROS'        },
           ].map(({ to, label }) => (
             <NavLink key={to} to={to}
               className={({ isActive }) =>
@@ -116,6 +124,7 @@ export default function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/"                    element={<HomePage />} />
           <Route path="/maritime"            element={<MaritimePage />} />
+          <Route path="/autonomous"          element={<AutonomousPageWrapper />} />
           <Route path="/simulators"          element={<SimPage />} />
           <Route path="/simulators/:domain"  element={<SimPage />} />
           <Route path="/ros"                 element={<RosPageWrapper />} />

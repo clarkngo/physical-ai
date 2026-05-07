@@ -152,11 +152,13 @@ const DOMAINS = [
   {
     id: 'autonomous',
     title: 'Autonomous Vehicles',
-    subtitle: 'LIDAR · Path planning · SLAM',
-    description: 'Sensor fusion, simultaneous localization and mapping, and real-time path planning for ground vehicles.',
+    subtitle: 'Hardware Layer · Structures · Manufacturing',
+    description: 'The physical foundation of autonomous vehicles — explore the industrial manufacturing processes (hot stamping, hydroforming, laser welding) that build AI-capable vehicle bodies.',
     color: '#fb923c',
-    link: null,
-    active: false,
+    link: '/autonomous',
+    chips: ['Hot Stamping', 'Hydroforming', 'Laser Welding'],
+    stat: '3 manufacturing processes',
+    active: true,
   },
   {
     id: 'aerial',
@@ -232,7 +234,7 @@ export default function PhysicalAIHome() {
       <div>
         <div className="mb-5 flex items-baseline gap-3">
           <h2 className="text-lg font-bold text-white">Domains</h2>
-          <span className="text-sm text-slate-500">2 active · 2 coming soon</span>
+          <span className="text-sm text-slate-500">3 active · 1 coming soon</span>
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
