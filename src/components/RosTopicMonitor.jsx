@@ -25,11 +25,14 @@ function formatMsg(topic, rosData) {
 
 /* ── Scrolling message log ───────────────────────────────────── */
 function MessageLog({ messages, topicColor }) {
-  const endRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  const containerRef = useRef(null);
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   return (
-    <div className="h-full overflow-y-auto font-mono text-xs leading-relaxed p-3 space-y-2">
+    <div ref={containerRef} className="h-full overflow-y-auto font-mono text-xs leading-relaxed p-3 space-y-2">
       <AnimatePresence initial={false}>
         {messages.map((m, i) => (
           <motion.div key={m.id}
@@ -45,7 +48,6 @@ function MessageLog({ messages, topicColor }) {
           </motion.div>
         ))}
       </AnimatePresence>
-      <div ref={endRef} />
     </div>
   );
 }
