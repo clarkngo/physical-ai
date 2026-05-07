@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RosNodeGraph    from './RosNodeGraph';
 import RosTopicMonitor from './RosTopicMonitor';
+import { NodesPanel, TopicsPanel, ServicesPanel } from './RosConceptsGuide';
 
 // ── Static rosData for the dev-tool panels ────────────────────
 const STATIC_ROS_DATA = {
@@ -261,6 +262,9 @@ function RosHero() {
 const TABS = [
   { id: 'rqt_graph',     label: 'rqt_graph',    icon: '⬡' },
   { id: 'topic_monitor', label: 'Topic Monitor', icon: '📡' },
+  { id: 'nodes',         label: 'Nodes',         icon: '○' },
+  { id: 'topics',        label: 'Topics',        icon: '→' },
+  { id: 'services',      label: 'Services',      icon: '⇄' },
 ];
 
 // ── Quick-ref commands ─────────────────────────────────────────
@@ -339,6 +343,9 @@ export default function RosPage() {
         transition={{ duration: 0.3 }}>
         {activeTab === 'rqt_graph'     && <RosNodeGraph    rosData={STATIC_ROS_DATA} />}
         {activeTab === 'topic_monitor' && <RosTopicMonitor rosData={STATIC_ROS_DATA} />}
+        {activeTab === 'nodes'         && <NodesPanel />}
+        {activeTab === 'topics'        && <TopicsPanel />}
+        {activeTab === 'services'      && <ServicesPanel />}
       </motion.div>
 
     </div>
