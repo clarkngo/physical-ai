@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import LearningPathway from './components/LearningPathway';
+import PhysicalAIHome from './components/PhysicalAIHome';
 import ResearchRepo from './components/ResearchRepo';
 import RosPage from './components/RosPage';
 import SimulatorsPage from './components/SimulatorsPage';
@@ -21,7 +22,7 @@ function NavBrand() {
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-pacificCyan" />
       </span>
       <span className="text-sm font-semibold uppercase tracking-[0.15em] text-pacificCyan transition group-hover:text-cyan-300">
-        Physical AI Maritime
+        Physical AI
       </span>
     </Link>
   );
@@ -36,12 +37,7 @@ const pageVariants = {
 
 function PageWrapper({ children }) {
   return (
-    <motion.div
-      variants={pageVariants}
-      initial="initial"
-      animate="enter"
-      exit="exit"
-    >
+    <motion.div variants={pageVariants} initial="initial" animate="enter" exit="exit">
       {children}
     </motion.div>
   );
@@ -49,6 +45,14 @@ function PageWrapper({ children }) {
 
 // ── Pages ─────────────────────────────────────────────────────────────────
 function HomePage() {
+  return (
+    <PageWrapper>
+      <PhysicalAIHome />
+    </PageWrapper>
+  );
+}
+
+function MaritimePage() {
   return (
     <PageWrapper>
       <Hero />
@@ -86,6 +90,7 @@ export default function App() {
         <NavBrand />
         <nav className="flex items-center gap-2 text-sm">
           {[
+            { to: '/maritime',   label: 'Maritime' },
             { to: '/simulators', label: 'Simulators' },
             { to: '/ros',        label: 'ROS' },
           ].map(({ to, label }) => (
@@ -108,6 +113,7 @@ export default function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/"           element={<HomePage />} />
+          <Route path="/maritime"   element={<MaritimePage />} />
           <Route path="/simulators" element={<SimPage />} />
           <Route path="/ros"        element={<RosPageWrapper />} />
         </Routes>
