@@ -75,12 +75,12 @@ export default function MaritimeSimulator() {
     // ── Scene setup ────────────────────────────────────────────────────────
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#00080f');
-    scene.fog = new THREE.FogExp2(0x00080f, 0.022);
+    scene.fog = new THREE.FogExp2(0x00080f, 0.014);
 
     const W = mountRef.current.clientWidth;
-    const H = 380;
-    const camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 1000);
-    camera.position.set(0, 4.5, 8);
+    const H = 420;
+    const camera = new THREE.PerspectiveCamera(48, W / H, 0.1, 1000);
+    camera.position.set(0, 2.5, 4.5);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -317,8 +317,8 @@ export default function MaritimeSimulator() {
     const onResize = () => {
       if (!mountRef.current) return;
       const w = mountRef.current.clientWidth;
-      renderer.setSize(w, H);
-      camera.aspect = w / H;
+      renderer.setSize(w, 420);
+      camera.aspect = w / 420;
       camera.updateProjectionMatrix();
     };
     window.addEventListener('resize', onResize);
