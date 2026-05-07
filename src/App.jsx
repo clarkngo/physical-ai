@@ -3,6 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
 import LearningPathway from './components/LearningPathway';
 import ResearchRepo from './components/ResearchRepo';
+import RosPage from './components/RosPage';
 import SimulatorsPage from './components/SimulatorsPage';
 import TelemetryTicker from './components/TelemetryTicker';
 
@@ -66,6 +67,14 @@ function SimPage() {
   );
 }
 
+function RosPageWrapper() {
+  return (
+    <PageWrapper>
+      <RosPage />
+    </PageWrapper>
+  );
+}
+
 // ── Root app ──────────────────────────────────────────────────────────────
 export default function App() {
   const location = useLocation();
@@ -76,18 +85,22 @@ export default function App() {
       <header className="glass-card sticky top-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl px-4 py-3">
         <NavBrand />
         <nav className="flex items-center gap-2 text-sm">
-          <NavLink
-            to="/simulators"
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-1.5 transition ${
-                isActive
-                  ? 'bg-pacificCyan text-slate-950 font-semibold'
-                  : 'text-slate-200 hover:bg-slate-800/80'
-              }`
-            }
-          >
-            Simulators
-          </NavLink>
+          {[
+            { to: '/simulators', label: 'Simulators' },
+            { to: '/ros',        label: 'ROS' },
+          ].map(({ to, label }) => (
+            <NavLink key={to} to={to}
+              className={({ isActive }) =>
+                `rounded-lg px-3 py-1.5 transition ${
+                  isActive
+                    ? 'bg-pacificCyan text-slate-950 font-semibold'
+                    : 'text-slate-200 hover:bg-slate-800/80'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
       </header>
 
@@ -96,6 +109,7 @@ export default function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/"           element={<HomePage />} />
           <Route path="/simulators" element={<SimPage />} />
+          <Route path="/ros"        element={<RosPageWrapper />} />
         </Routes>
       </AnimatePresence>
     </main>
