@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import Hero from './components/Hero';
+import HardwareLayer from './components/HardwareLayer';
 import LearningPathway from './components/LearningPathway';
 import PhysicalAIHome from './components/PhysicalAIHome';
 import ResearchRepo from './components/ResearchRepo';
@@ -58,6 +59,7 @@ function MaritimePage() {
       <Hero />
       <TelemetryTicker />
       <LearningPathway />
+      <HardwareLayer />
       <ResearchRepo />
     </PageWrapper>
   );
