@@ -4,6 +4,8 @@ import MaritimeSimulator from './MaritimeSimulator';
 import SonarInterpretationSimulator from './SonarInterpretationSimulator';
 import CollisionAvoidanceSimulator from './CollisionAvoidanceSimulator';
 import TurtleSimulator from './TurtleSimulator';
+import ShapeDrawingLab  from './ShapeDrawingLab';
+import WaypointNavLab   from './WaypointNavLab';
 
 // ── Neural-network / sensor-fusion visualisation ──────────────────────────
 
@@ -107,7 +109,9 @@ const MARITIME_LABS = [
 ];
 
 const ROBOTICS_LABS = [
-  { num: '01', title: 'TurtleSim',    desc: 'Drive a turtle around a 2D world. Spawn multiple turtles, control pen color and width, and observe the ROS pose topic update in real time.', icon: '🐢' },
+  { num: '01', title: 'TurtleSim',              desc: 'Drive a turtle around a 2D world. Spawn multiple turtles, control pen color and width, and observe the ROS pose topic update in real time.', icon: '🐢' },
+  { num: '02', title: 'Shape Drawing Lab',       desc: 'Program the turtle to autonomously trace geometric shapes by publishing timed velocity commands — the core of ROS motion planning.', icon: '📐' },
+  { num: '03', title: 'Waypoint Navigation Lab', desc: 'Click the canvas to place goals. A proportional controller navigates the turtle to each waypoint — the same feedback loop used in ROS Nav2.', icon: '🗺️' },
 ];
 
 const cardVariants = {
@@ -248,6 +252,8 @@ export default function SimulatorsPage() {
             </div>
 
             <TurtleSimulator />
+            <ShapeDrawingLab />
+            <WaypointNavLab />
           </motion.div>
         )}
       </AnimatePresence>

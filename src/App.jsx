@@ -118,6 +118,11 @@ export default function App() {
           <Route path="/ros"        element={<RosPageWrapper />} />
         </Routes>
       </AnimatePresence>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-slate-800/60 pt-6 pb-2 text-center text-xs text-slate-600">
+        © {new Date().getFullYear()} Clark Ngo · Physical AI Learning Platform
+      </footer>
     </main>
   );
 }
