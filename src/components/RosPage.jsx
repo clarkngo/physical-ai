@@ -1,22 +1,26 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import TurtleSimulator from './TurtleSimulator';
 import RosNodeGraph    from './RosNodeGraph';
 import RosTopicMonitor from './RosTopicMonitor';
 
 const TABS = [
-  { id: 'turtlesim',     label: 'TurtleSim',    icon: '🐢' },
   { id: 'rqt_graph',     label: 'rqt_graph',    icon: '⬡' },
   { id: 'topic_monitor', label: 'Topic Monitor', icon: '📡' },
 ];
+
+// Static rosData — no live turtle in this view; graph animates on its own
+const STATIC_ROS_DATA = {
+  pose:       { x: 5.544, y: 5.544, theta: 0, lv: 0, av: 0 },
+  cmdVel:     { linear_x: 0, angular_z: 0 },
+  cmdActive:  false,
+  poseActive: true,
+};
 
 /* ── ROS gear-wheel icon ─────────────────────────────────────── */
 function RosIcon() {
   return (
     <svg width="30" height="30" viewBox="0 0 100 100" fill="none">
-      {/* Hub */}
       <circle cx="50" cy="50" r="14" fill="none" stroke="#00a3e0" strokeWidth="4" />
-      {/* 4 spokes + endpoint circles */}
       {[[50,10],[50,90],[10,50],[90,50]].map(([x,y],i) => (
         <g key={i}>
           <line x1="50" y1="50" x2={x} y2={y} stroke="#00a3e0" strokeWidth="3.5" />
@@ -28,33 +32,7 @@ function RosIcon() {
 }
 
 export default function RosPage() {
-  const [activeTab, setActiveTab] = useState('turtlesim');
-  const [rosData,   setRosData]   = useState({
-    pose:      { x: 5.544, y: 5.544, theta: 0, lv: 0, av: 0 },
-    cmdVel:    { linear_x: 0, angular_z: 0 },
-    cmdActive: false,
-    poseActive: true,
-  });
-
-  /* Refs for throttled React state update from canvas loop */
-  const latestRef = useRef(null);
-  const timerRef  = useRef(null);
-
-  const onTurtleUpdate = useCallback((data) => {
-    latestRef.current = data;
-    if (timerRef.current) return;
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
-      const d = latestRef.current;
-      if (!d) return;
-      setRosData({
-        pose:       { x: d.x, y: d.y, theta: d.theta, lv: d.linearVel, av: d.angularVel },
-        cmdVel:     { linear_x: d.linearVel, angular_z: d.angularVel },
-        cmdActive:  d.linearVel !== 0 || d.angularVel !== 0,
-        poseActive: true,
-      });
-    }, 90);
-  }, []);
+  const [activeTab, setActiveTab] = useState('rqt_graph');
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,9 +45,13 @@ export default function RosPage() {
             <RosIcon />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Robot Operating System</h1>
+            <h1 className="text-xl font-bold text-white">ROS Developer Tools</h1>
             <p className="mt-0.5 text-sm text-slate-400">
-              TurtleSim simulator &middot; rqt_graph &middot; Topic Monitor
+              Node graph &middot; Topic Monitor
+              &nbsp;<span className="text-slate-600">·</span>&nbsp;
+              <span className="text-slate-500">TurtleSim available under
+                <span className="text-pacificCyan"> Simulators → Robotics</span>
+              </span>
             </p>
           </div>
 
@@ -117,9 +99,8 @@ export default function RosPage() {
       {/* ── Tab content ──────────────────────────────────────── */}
       <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}>
-        {activeTab === 'turtlesim'     && <TurtleSimulator onUpdate={onTurtleUpdate} />}
-        {activeTab === 'rqt_graph'     && <RosNodeGraph    rosData={rosData} />}
-        {activeTab === 'topic_monitor' && <RosTopicMonitor rosData={rosData} />}
+        {activeTab === 'rqt_graph'     && <RosNodeGraph    rosData={STATIC_ROS_DATA} />}
+        {activeTab === 'topic_monitor' && <RosTopicMonitor rosData={STATIC_ROS_DATA} />}
       </motion.div>
 
     </div>

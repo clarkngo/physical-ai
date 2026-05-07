@@ -121,15 +121,24 @@ function Arrow({ from, to, active, dim }) {
 
 /* ── Main component ──────────────────────────────────────────── */
 export default function RosNodeGraph({ rosData }) {
-  const cmdActive  = rosData?.cmdActive  ?? false;
   const poseActive = rosData?.poseActive ?? true;
-  const [tick, setTick] = useState(0);
 
-  // Pulse poseActive every 2s to simulate periodic /pose publishing
+  // cmdActive: use prop if live data present, otherwise self-animate
+  // (burst on for 1.2s every 4s so the graph looks alive in standalone mode)
+  const [simCmd, setSimCmd] = useState(false);
+  const hasLiveData = rosData?.cmdActive !== undefined && rosData?.cmdActive !== false;
+  const cmdActive  = hasLiveData ? rosData.cmdActive : simCmd;
+
   useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 2000);
+    if (hasLiveData) return; // live turtle is driving it, don't interfere
+    const fire = () => {
+      setSimCmd(true);
+      setTimeout(() => setSimCmd(false), 1200);
+    };
+    fire();
+    const id = setInterval(fire, 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [hasLiveData]);
 
   const isActive = (topicId) => {
     if (topicId === 'cmd_vel') return cmdActive;
