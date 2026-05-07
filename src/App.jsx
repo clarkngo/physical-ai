@@ -112,10 +112,12 @@ export default function App() {
       {/* Animated route transitions */}
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/"           element={<HomePage />} />
-          <Route path="/maritime"   element={<MaritimePage />} />
-          <Route path="/simulators" element={<SimPage />} />
-          <Route path="/ros"        element={<RosPageWrapper />} />
+          <Route path="/"                    element={<HomePage />} />
+          <Route path="/maritime"            element={<MaritimePage />} />
+          <Route path="/simulators"          element={<SimPage />} />
+          <Route path="/simulators/:domain"  element={<SimPage />} />
+          <Route path="/ros"                 element={<RosPageWrapper />} />
+          <Route path="/ros/:tool"           element={<RosPageWrapper />} />
         </Routes>
       </AnimatePresence>
 

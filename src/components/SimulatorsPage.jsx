@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MaritimeSimulator from './MaritimeSimulator';
 import SonarInterpretationSimulator from './SonarInterpretationSimulator';
@@ -6,6 +7,7 @@ import CollisionAvoidanceSimulator from './CollisionAvoidanceSimulator';
 import TurtleSimulator from './TurtleSimulator';
 import ShapeDrawingLab  from './ShapeDrawingLab';
 import WaypointNavLab   from './WaypointNavLab';
+import ManipulationTab  from './ManipulationTab';
 
 // ── Neural-network / sensor-fusion visualisation ──────────────────────────
 
@@ -122,14 +124,27 @@ const cardVariants = {
 // ── Domain tabs ────────────────────────────────────────────────────────────
 
 const DOMAINS = [
-  { id: 'maritime',  label: 'Maritime',  icon: '🌊', color: '#00a3e0' },
-  { id: 'robotics',  label: 'Robotics',  icon: '🤖', color: '#4ade80' },
+  { id: 'maritime',     label: 'Maritime',     icon: '🌊', color: '#00a3e0' },
+  { id: 'robotics',     label: 'Robotics',     icon: '🤖', color: '#4ade80' },
+  { id: 'manipulation', label: 'Manipulation', icon: '🦾', color: '#f97316' },
 ];
 
 // ── Page ──────────────────────────────────────────────────────────────────
 
+const VALID_DOMAINS = DOMAINS.map(d => d.id);
+
 export default function SimulatorsPage() {
-  const [domain, setDomain] = useState('maritime');
+  const { domain: domainParam } = useParams();
+  const navigate = useNavigate();
+  const domain = VALID_DOMAINS.includes(domainParam) ? domainParam : 'maritime';
+
+  // Redirect bare /simulators → /simulators/maritime
+  useEffect(() => {
+    if (!domainParam) navigate('/simulators/maritime', { replace: true });
+    else if (!VALID_DOMAINS.includes(domainParam)) navigate('/simulators/maritime', { replace: true });
+  }, [domainParam, navigate]);
+
+  const setDomain = (id) => navigate(`/simulators/${id}`);
 
   return (
     <section className="space-y-6 pb-8">
@@ -148,8 +163,9 @@ export default function SimulatorsPage() {
           <div className="flex gap-2">
             {DOMAINS.map(d => (
               <button key={d.id} onClick={() => setDomain(d.id)}
+                style={domain === d.id ? { backgroundColor: d.color, color: '#0f172a' } : {}}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
-                  domain === d.id ? 'bg-pacificCyan text-slate-950' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
+                  domain === d.id ? '' : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
                 }`}>
                 <span>{d.icon}</span>
                 {d.label}
@@ -254,6 +270,16 @@ export default function SimulatorsPage() {
             <TurtleSimulator />
             <ShapeDrawingLab />
             <WaypointNavLab />
+          </motion.div>
+        )}
+
+        {/* ── Manipulation content ─────────────────────────────── */}
+        {domain === 'manipulation' && (
+          <motion.div key="manipulation"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
+            className="space-y-6">
+            <ManipulationTab />
           </motion.div>
         )}
       </AnimatePresence>

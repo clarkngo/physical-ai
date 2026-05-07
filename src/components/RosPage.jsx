@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import RosNodeGraph    from './RosNodeGraph';
 import RosTopicMonitor from './RosTopicMonitor';
@@ -271,8 +271,19 @@ const CMDS = [
   'rqt_graph',
 ];
 
+const VALID_TOOLS = TABS.map(t => t.id);
+
 export default function RosPage() {
-  const [activeTab, setActiveTab] = useState('rqt_graph');
+  const { tool } = useParams();
+  const navigate  = useNavigate();
+  const activeTab = VALID_TOOLS.includes(tool) ? tool : 'rqt_graph';
+
+  useEffect(() => {
+    if (!tool) navigate('/ros/rqt_graph', { replace: true });
+    else if (!VALID_TOOLS.includes(tool)) navigate('/ros/rqt_graph', { replace: true });
+  }, [tool, navigate]);
+
+  const setActiveTab = (id) => navigate(`/ros/${id}`);
 
   return (
     <div className="flex flex-col gap-6">
