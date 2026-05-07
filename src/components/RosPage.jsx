@@ -225,7 +225,7 @@ function RosHero() {
         </motion.p>
 
         <motion.div variants={itemVariants} className="mt-7 flex flex-wrap gap-3">
-          <Link to="/simulators"
+          <Link to="/simulators/robotics"
             className="rounded-xl bg-green-400 px-6 py-2.5 text-sm font-semibold
                        text-slate-950 transition hover:bg-emerald-300">
             Launch TurtleSim
@@ -296,8 +296,8 @@ export default function RosPage() {
           <div>
             <h2 className="text-lg font-bold text-white">ROS Developer Tools</h2>
             <p className="mt-0.5 text-sm text-slate-400">
-              <span className="text-slate-500">TurtleSim available under</span>
-              <span className="text-green-400"> Simulators → Robotics</span>
+              <span className="text-slate-500">TurtleSim available at</span>
+              <span className="text-green-400"> /simulators/robotics</span>
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2 rounded-full bg-slate-900/60
