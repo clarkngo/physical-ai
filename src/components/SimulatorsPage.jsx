@@ -8,6 +8,7 @@ import TurtleSimulator from './TurtleSimulator';
 import ShapeDrawingLab  from './ShapeDrawingLab';
 import WaypointNavLab   from './WaypointNavLab';
 import ManipulationTab  from './ManipulationTab';
+import IsaacLabTab      from './IsaacLabTab';
 
 // ── Neural-network / sensor-fusion visualisation ──────────────────────────
 
@@ -127,6 +128,7 @@ const DOMAINS = [
   { id: 'maritime',     label: 'Maritime',     icon: '🌊', color: '#00a3e0' },
   { id: 'robotics',     label: 'Robotics',     icon: '🤖', color: '#4ade80' },
   { id: 'manipulation', label: 'Manipulation', icon: '🦾', color: '#f97316' },
+  { id: 'isaac',        label: 'Isaac Lab',    icon: '🤖', color: '#a78bfa' },
 ];
 
 // ── Page ──────────────────────────────────────────────────────────────────
@@ -280,6 +282,16 @@ export default function SimulatorsPage() {
             exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
             className="space-y-6">
             <ManipulationTab />
+          </motion.div>
+        )}
+
+        {/* ── Isaac Lab content ────────────────────────────────── */}
+        {domain === 'isaac' && (
+          <motion.div key="isaac"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
+            className="space-y-6">
+            <IsaacLabTab />
           </motion.div>
         )}
       </AnimatePresence>

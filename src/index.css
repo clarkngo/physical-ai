@@ -106,3 +106,184 @@ body {
 .ticker-track:hover {
   animation-play-state: paused;
 }
+
+/* ── Maritime CPS Explorer screen labels ─────────────────────────────── */
+
+.maritime-screen-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid rgba(0, 243, 255, 0.22);
+  border-radius: 0.25rem;
+  background: rgba(13, 17, 23, 0.78);
+  backdrop-filter: blur(4px);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  white-space: nowrap;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  pointer-events: none;
+}
+
+.maritime-screen-label__tag {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.maritime-screen-label__sep {
+  color: rgba(0, 243, 255, 0.45);
+}
+
+.maritime-screen-label__module {
+  color: #00f3ff;
+  font-weight: 700;
+}
+
+.maritime-screen-label--hovered {
+  border-color: rgba(0, 243, 255, 0.45);
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
+}
+
+.maritime-screen-label--selected {
+  border-color: rgba(0, 243, 255, 0.75);
+  box-shadow: 0 0 16px rgba(0, 243, 255, 0.28);
+}
+
+.maritime-screen-label--selected .maritime-screen-label__tag,
+.maritime-screen-label--selected .maritime-screen-label__module {
+  color: #67e8f9;
+}
+
+.maritime-hud-interactive {
+  pointer-events: auto;
+}
+
+.maritime-hud {
+  background: rgba(13, 17, 23, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ── Maritime explorer viewport (full-bleed canvas) ─────────────────── */
+
+.maritime-explorer-module {
+  position: relative;
+  overflow: hidden;
+}
+
+.maritime-viewport-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.maritime-hud-root {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.maritime-hud-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.maritime-concept-float {
+  position: absolute;
+  top: 5.5rem;
+  left: 1.25rem;
+  z-index: 11;
+  width: min(100% - 2.5rem, 22rem);
+  max-height: 50vh;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.maritime-incident-panel {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+  z-index: 11;
+  width: 350px;
+  max-height: 70vh;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.maritime-hud-dock-wrap {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  z-index: 11;
+  width: 95%;
+  max-width: 72rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.maritime-hud-dock-wrap--minimized {
+  transform: translate(-50%, 90%);
+}
+
+.maritime-hud-dock-toggle {
+  position: absolute;
+  top: -1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.maritime-hud-dock {
+  width: 100%;
+  max-height: 30vh;
+  overflow-y: auto;
+  pointer-events: none;
+  border-radius: 0.75rem;
+}
+
+.maritime-hud-dock .maritime-hud-interactive {
+  pointer-events: auto;
+}
+
+/* ── Maritime explorer fullscreen module ─────────────────────────────── */
+
+.maritime-explorer-module:fullscreen {
+  display: block;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  background: #0d1117;
+}
+
+.maritime-explorer-module:fullscreen .maritime-viewport-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
