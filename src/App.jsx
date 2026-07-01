@@ -1,13 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import AutonomousPage from './components/AutonomousPage';
-import Hero from './components/Hero';
-import LearningPathway from './components/LearningPathway';
 import PhysicalAIHome from './components/PhysicalAIHome';
-import ResearchRepo from './components/ResearchRepo';
 import RosPage from './components/RosPage';
 import SimulatorsPage from './components/SimulatorsPage';
-import TelemetryTicker from './components/TelemetryTicker';
+import MaritimeExplorerPage from './pages/MaritimeExplorerPage.jsx';
+import MaritimeHubPage from './pages/MaritimeHubPage.jsx';
 
 // ── Sonar ping on the brand logo ──────────────────────────────────────────
 function NavBrand() {
@@ -53,13 +51,18 @@ function HomePage() {
   );
 }
 
-function MaritimePage() {
+function MaritimeHubRoute() {
   return (
     <PageWrapper>
-      <Hero />
-      <TelemetryTicker />
-      <LearningPathway />
-      <ResearchRepo />
+      <MaritimeHubPage />
+    </PageWrapper>
+  );
+}
+
+function MaritimeExplorerRoute() {
+  return (
+    <PageWrapper>
+      <MaritimeExplorerPage />
     </PageWrapper>
   );
 }
@@ -123,7 +126,8 @@ export default function App() {
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/"                    element={<HomePage />} />
-          <Route path="/maritime"            element={<MaritimePage />} />
+          <Route path="/maritime"            element={<MaritimeHubRoute />} />
+          <Route path="/maritime/explorer"   element={<MaritimeExplorerRoute />} />
           <Route path="/autonomous"          element={<AutonomousPageWrapper />} />
           <Route path="/simulators"          element={<SimPage />} />
           <Route path="/simulators/:domain"  element={<SimPage />} />

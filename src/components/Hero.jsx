@@ -237,6 +237,12 @@ export default function Hero() {
           >
             Open Simulators
           </Link>
+          <Link
+            to="/maritime/explorer"
+            className="rounded-xl border border-slate-600 px-6 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-pacificCyan/40 hover:text-white"
+          >
+            CPS Explorer
+          </Link>
         </motion.div>
 
         {/* Stats row */}
