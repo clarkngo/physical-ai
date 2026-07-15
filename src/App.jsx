@@ -4,6 +4,9 @@ import AutonomousPage from './components/AutonomousPage';
 import PhysicalAIHome from './components/PhysicalAIHome';
 import RosPage from './components/RosPage';
 import SimulatorsPage from './components/SimulatorsPage';
+import AviationExplorerPage from './pages/AviationExplorerPage.jsx';
+import AviationHubPage from './pages/AviationHubPage.jsx';
+import AviationSimulatorsPage from './pages/AviationSimulatorsPage.jsx';
 import MaritimeExplorerPage from './pages/MaritimeExplorerPage.jsx';
 import MaritimeHubPage from './pages/MaritimeHubPage.jsx';
 
@@ -47,6 +50,30 @@ function HomePage() {
   return (
     <PageWrapper>
       <PhysicalAIHome />
+    </PageWrapper>
+  );
+}
+
+function AviationHubRoute() {
+  return (
+    <PageWrapper>
+      <AviationHubPage />
+    </PageWrapper>
+  );
+}
+
+function AviationExplorerRoute() {
+  return (
+    <PageWrapper>
+      <AviationExplorerPage />
+    </PageWrapper>
+  );
+}
+
+function AviationSimulatorsRoute() {
+  return (
+    <PageWrapper>
+      <AviationSimulatorsPage />
     </PageWrapper>
   );
 }
@@ -103,6 +130,7 @@ export default function App() {
         <nav className="flex items-center gap-2 text-sm">
           {[
             { to: '/maritime',    label: 'Maritime'   },
+            { to: '/aviation',    label: 'Aviation'   },
             { to: '/autonomous',  label: 'Autonomous' },
             { to: '/simulators',  label: 'Simulators' },
             { to: '/ros',         label: 'ROS'        },
@@ -128,6 +156,9 @@ export default function App() {
           <Route path="/"                    element={<HomePage />} />
           <Route path="/maritime"            element={<MaritimeHubRoute />} />
           <Route path="/maritime/explorer"   element={<MaritimeExplorerRoute />} />
+          <Route path="/aviation"            element={<AviationHubRoute />} />
+          <Route path="/aviation/explorer"   element={<AviationExplorerRoute />} />
+          <Route path="/aviation/simulators" element={<AviationSimulatorsRoute />} />
           <Route path="/autonomous"          element={<AutonomousPageWrapper />} />
           <Route path="/simulators"          element={<SimPage />} />
           <Route path="/simulators/:domain"  element={<SimPage />} />

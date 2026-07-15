@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MaritimeSimulator from './MaritimeSimulator';
 import SonarInterpretationSimulator from './SonarInterpretationSimulator';
 import CollisionAvoidanceSimulator from './CollisionAvoidanceSimulator';
+import FlightPathOptimizer from './FlightPathOptimizer';
+import AdsbIntegritySimulator from './AdsbIntegritySimulator';
+import TcasConflictSimulator from './TcasConflictSimulator';
 import TurtleSimulator from './TurtleSimulator';
 import ShapeDrawingLab  from './ShapeDrawingLab';
 import WaypointNavLab   from './WaypointNavLab';
@@ -111,6 +114,12 @@ const MARITIME_LABS = [
   { num: '03', title: 'Collision Avoidance Lab',   desc: "Watch the AI re-route an own ship in a bird's-eye view to maintain a safe CPA.", icon: '⚠️' },
 ];
 
+const AVIATION_LABS = [
+  { num: '01', title: 'Arrival Path Optimization', desc: 'CDO vs stepped vectors on KSEA HAWKZ4 → ILS 16L under TBFM metering.', icon: '🧭' },
+  { num: '02', title: 'ADS-B Integrity',           desc: 'Cross-check DF=17 NIC/NACp claims against MLAT and primary radar.', icon: '📡' },
+  { num: '03', title: 'TCAS Conflict',             desc: 'Select an RA sense and test whether predicted miss clears ALIM before Tau.', icon: '⚠️' },
+];
+
 const ROBOTICS_LABS = [
   { num: '01', title: 'TurtleSim',              desc: 'Drive a turtle around a 2D world. Spawn multiple turtles, control pen color and width, and observe the ROS pose topic update in real time.', icon: '🐢' },
   { num: '02', title: 'Shape Drawing Lab',       desc: 'Program the turtle to autonomously trace geometric shapes by publishing timed velocity commands — the core of ROS motion planning.', icon: '📐' },
@@ -126,6 +135,7 @@ const cardVariants = {
 
 const DOMAINS = [
   { id: 'maritime',     label: 'Maritime',     icon: '🌊', color: '#00a3e0' },
+  { id: 'aviation',     label: 'Aviation',     icon: '✈️', color: '#38bdf8' },
   { id: 'robotics',     label: 'Robotics',     icon: '🤖', color: '#4ade80' },
   { id: 'manipulation', label: 'Manipulation', icon: '🦾', color: '#f97316' },
   { id: 'isaac',        label: 'Isaac Lab',    icon: '🤖', color: '#a78bfa' },
@@ -225,6 +235,51 @@ export default function SimulatorsPage() {
             <MaritimeSimulator />
             <SonarInterpretationSimulator />
             <CollisionAvoidanceSimulator />
+          </motion.div>
+        )}
+
+        {/* ── Aviation content ────────────────────────────────────────── */}
+        {domain === 'aviation' && (
+          <motion.div key="aviation"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
+            className="space-y-6">
+
+            <div className="simulator-panel relative overflow-hidden rounded-3xl p-7">
+              <div className="pointer-events-none absolute -right-14 -top-14 h-48 w-48 rounded-full bg-sky-500/20 blur-3xl" />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400">
+                  Aviation Domain
+                </p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-whiteHull">
+                  Aviation AI Labs
+                </h2>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
+                  Teaching labs built on real procedure and avionics concepts: KSEA RNAV STARs and CDO,
+                  DF=17 ADS-B fused with MLAT/primary, and TCAS II Tau / ALIM resolution advisories.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {AVIATION_LABS.map((card, i) => (
+                <motion.article key={card.num} custom={i} variants={cardVariants}
+                  initial="hidden" whileInView="visible" viewport={{ once: true }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="glass-card rounded-2xl p-5">
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-lg">{card.icon}</span>
+                    <span className="text-xs font-bold tracking-widest text-sky-400">LAB {card.num}</span>
+                  </div>
+                  <h2 className="text-base font-semibold text-sky-400">{card.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{card.desc}</p>
+                </motion.article>
+              ))}
+            </div>
+
+            <FlightPathOptimizer />
+            <AdsbIntegritySimulator />
+            <TcasConflictSimulator />
           </motion.div>
         )}
 
