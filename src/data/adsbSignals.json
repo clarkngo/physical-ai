@@ -1,0 +1,10 @@
+[
+  { "range": 2.1, "strength": 0.42, "callsign": "ASA412" },
+  { "range": 4.8, "strength": 0.71, "callsign": "UAL782" },
+  { "range": 7.3, "strength": 0.55, "callsign": "DAL215" },
+  { "range": 9.6, "strength": 0.88, "callsign": "AAL901" },
+  { "range": 12.4, "strength": 0.36, "callsign": "JBU118" },
+  { "range": 15.1, "strength": 0.64, "callsign": "SWA447" },
+  { "range": 18.7, "strength": 0.79, "callsign": "FFT902" },
+  { "range": 22.0, "strength": 0.48, "callsign": "NKS331" }
+]
