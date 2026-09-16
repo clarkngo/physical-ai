@@ -168,8 +168,16 @@ export default function App() {
       </AnimatePresence>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-800/60 pt-6 pb-2 text-center text-xs text-slate-600">
-        © {new Date().getFullYear()} Clark Ngo · Physical AI Learning Platform
+      <footer className="mt-auto flex flex-col items-center gap-2 border-t border-slate-800/60 pt-6 pb-2 text-center text-xs text-slate-600">
+        <span>© {new Date().getFullYear()} Clark Ngo · Physical AI Learning Platform</span>
+        <a
+          href="https://github.com/clarkngo/physical-ai"
+          target="_blank"
+          rel="noreferrer"
+          className="text-slate-500 transition hover:text-pacificCyan"
+        >
+          GitHub
+        </a>
       </footer>
     </main>
   );
