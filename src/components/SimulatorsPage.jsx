@@ -10,6 +10,8 @@ import TcasConflictSimulator from './TcasConflictSimulator';
 import TurtleSimulator from './TurtleSimulator';
 import ShapeDrawingLab  from './ShapeDrawingLab';
 import WaypointNavLab   from './WaypointNavLab';
+import LidarObstacleLab from './LidarObstacleLab';
+import ServiceCallLab   from './ServiceCallLab';
 import ManipulationTab  from './ManipulationTab';
 import IsaacLabTab      from './IsaacLabTab';
 
@@ -124,6 +126,8 @@ const ROBOTICS_LABS = [
   { num: '01', title: 'TurtleSim',              desc: 'Drive a turtle around a 2D world. Spawn multiple turtles, control pen color and width, and observe the ROS pose topic update in real time.', icon: '🐢' },
   { num: '02', title: 'Shape Drawing Lab',       desc: 'Program the turtle to autonomously trace geometric shapes by publishing timed velocity commands — the core of ROS motion planning.', icon: '📐' },
   { num: '03', title: 'Waypoint Navigation Lab', desc: 'Click the canvas to place goals. A proportional controller navigates the turtle to each waypoint — the same feedback loop used in ROS Nav2.', icon: '🗺️' },
+  { num: '04', title: 'LiDAR Obstacle Avoidance', desc: 'A simulated LaserScan feeds a reactive controller that steers around obstacles — the perceive-and-react loop behind Nav2 and TurtleBot3 demos.', icon: '📡' },
+  { num: '05', title: 'Service Call Lab',        desc: 'Call /spawn, /kill, /teleport_absolute, /set_pen and /reset as synchronous services and inspect the request/response log.', icon: '🔧' },
 ];
 
 const cardVariants = {
@@ -327,6 +331,8 @@ export default function SimulatorsPage() {
             <TurtleSimulator />
             <ShapeDrawingLab />
             <WaypointNavLab />
+            <LidarObstacleLab />
+            <ServiceCallLab />
           </motion.div>
         )}
 
