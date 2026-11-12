@@ -12,6 +12,8 @@ import ShapeDrawingLab  from './ShapeDrawingLab';
 import WaypointNavLab   from './WaypointNavLab';
 import LidarObstacleLab from './LidarObstacleLab';
 import ServiceCallLab   from './ServiceCallLab';
+import ActionNavLab     from './ActionNavLab';
+import TfDriftLab       from './TfDriftLab';
 import ManipulationTab  from './ManipulationTab';
 import IsaacLabTab      from './IsaacLabTab';
 
@@ -128,6 +130,8 @@ const ROBOTICS_LABS = [
   { num: '03', title: 'Waypoint Navigation Lab', desc: 'Click the canvas to place goals. A proportional controller navigates the turtle to each waypoint — the same feedback loop used in ROS Nav2.', icon: '🗺️' },
   { num: '04', title: 'LiDAR Obstacle Avoidance', desc: 'A simulated LaserScan feeds a reactive controller that steers around obstacles — the perceive-and-react loop behind Nav2 and TurtleBot3 demos.', icon: '📡' },
   { num: '05', title: 'Service Call Lab',        desc: 'Call /spawn, /kill, /teleport_absolute, /set_pen and /reset as synchronous services and inspect the request/response log.', icon: '🔧' },
+  { num: '06', title: 'Action Server Lab',       desc: 'Send a goal, watch live feedback stream in, and cancel mid-execution — the preemptible goal/feedback/result pattern behind Nav2 actions.', icon: '🎯' },
+  { num: '07', title: 'TF Odometry Drift Lab',   desc: 'Watch wheel odometry drift from ground truth and correct it with a map→odom relocalization — why ROS 2 keeps map, odom, and base_link as separate TF frames.', icon: '🧭' },
 ];
 
 const cardVariants = {
@@ -333,6 +337,8 @@ export default function SimulatorsPage() {
             <WaypointNavLab />
             <LidarObstacleLab />
             <ServiceCallLab />
+            <ActionNavLab />
+            <TfDriftLab />
           </motion.div>
         )}
 
