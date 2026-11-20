@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getMujoco } from './mujocoLoader.js';
+import { getMujoco } from '../MujocoShared/mujocoLoader.js';
 import { CourtRenderer, CAMERA_VIEWS } from './courtRenderer.js';
 import { PRESETS, SAMPLE_HZ, VolleyballSim, randomServe } from './volleyballSim.js';
 import { BALL, COURT } from './volleyballScene.js';

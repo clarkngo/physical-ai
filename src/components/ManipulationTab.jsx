@@ -1,5 +1,8 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { lazy, Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+
+// Physics labs run on MuJoCo (WebAssembly); load them only when this tab opens.
+const MujocoArmLabs = lazy(() => import('./MujocoArm/MujocoArmLabs.jsx'));
 
 /* ── Constants ──────────────────────────────────────────────── */
 const CW = 460;
@@ -601,6 +604,8 @@ const MANIP_LABS = [
   { num:'01', title:'Forward Kinematics', desc:'Drag joint sliders to see how angles map to end-effector position.', icon:'🦾' },
   { num:'02', title:'Inverse Kinematics', desc:'Click the workspace — 3-DOF IK solves analytically and the arm animates to target.', icon:'🎯' },
   { num:'03', title:'Pick & Place',       desc:'Full cycle: approach, jaw close, lift, transfer, jaw open. Gripper state is always visible.', icon:'📦' },
+  { num:'04', title:'Joint Control & Gravity', desc:'MuJoCo physics: torque motors, P / PD / gravity compensation, payloads and pushes.', icon:'⚙️' },
+  { num:'05', title:'Physical Pick & Place',   desc:'MuJoCo physics: the cube is held only by friction. Tune grip, mass, μ and speed until it slips.', icon:'🧲' },
 ];
 const cardV = {
   hidden:   { opacity: 0, y: 20 },
@@ -617,8 +622,9 @@ export default function ManipulationTab() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">Manipulation Domain</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight text-whiteHull">Robotic Arm Labs</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
-              Three labs covering direct joint control, geometric IK, and an
-              autonomous pick-and-place cycle with a parallel-jaw gripper.
+              Five labs: direct joint control, geometric IK and an autonomous
+              pick-and-place cycle, then the same arm with real physics in MuJoCo,
+              covering torque control, gravity and friction grasping.
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -640,6 +646,9 @@ export default function ManipulationTab() {
       <FKLab />
       <IKLab />
       <PickPlaceLab />
+      <Suspense fallback={<div className="simulator-panel rounded-2xl p-6 text-sm text-slate-400">Loading MuJoCo physics labs…</div>}>
+        <MujocoArmLabs />
+      </Suspense>
     </div>
   );
 }
