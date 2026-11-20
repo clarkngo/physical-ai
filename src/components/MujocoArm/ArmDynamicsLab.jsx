@@ -172,7 +172,7 @@ export default function ArmDynamicsLab() {
 
   return (
     <div className="simulator-panel space-y-5 rounded-2xl p-6">
-      <LabHeader num="04" title="Joint Control & Gravity">
+      <LabHeader num="03" title="Joint Control & Gravity">
         The same 3-joint arm, but now each joint is a torque motor with limits, and the arm has mass. The
         controller has to fight gravity to hold a pose. Compare P, PD and PD with gravity compensation, add a
         payload, and push the hand to see how the arm recovers. The blue ghost is the setpoint.
