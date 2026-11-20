@@ -1,5 +1,6 @@
 import { lazy, Suspense, useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 // Physics labs run on MuJoCo (WebAssembly); load them only when this tab opens.
 const MujocoArmLabs = lazy(() => import('./MujocoArm/MujocoArmLabs.jsx'));
@@ -24,17 +25,47 @@ function fk(q1, q2, q3) {
   return { elbow, wrist, ee };
 }
 
-function ik(tx, ty) {
-  const wdx = tx - CX, wdy = CY - ty;
-  const r2 = wdx * wdx + wdy * wdy, r = Math.sqrt(r2);
-  if (r > L1 + L2 || r < Math.abs(L1 - L2)) return null;
-  const cosQ2 = (r2 - L1 * L1 - L2 * L2) / (2 * L1 * L2);
-  const q2 = -Math.acos(Math.max(-1, Math.min(1, cosQ2)));
-  const alpha = Math.atan2(wdy, wdx);
-  const beta  = Math.atan2(L2 * Math.sin(-q2), L1 + L2 * Math.cos(-q2));
-  const q1 = alpha - beta;
-  const q3 = -q2 * 0.45;
-  return [q1, q2, q3];
+// The tool point is the grip centre: L3 + GRIP_LEN past the wrist joint.
+const LT = L3 + GRIP_LEN;
+const wrapAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+/**
+ * 3-link inverse kinematics: put the grip centre on (tx, ty) with the gripper
+ * pointing at angle phi (math frame, radians; −90° = straight down).
+ * Returns both elbow solutions as [q1, q2, q3] arrays (empty if unreachable).
+ */
+function ikSolutions(tx, ty, phi) {
+  const x = tx - CX, y = CY - ty;                 // canvas → math frame (y up)
+  const wx = x - LT * Math.cos(phi);               // wrist position: back off from
+  const wy = y - LT * Math.sin(phi);              // the target along the tool axis
+  const r2 = wx * wx + wy * wy;
+  const c2 = (r2 - L1 * L1 - L2 * L2) / (2 * L1 * L2);   // law of cosines
+  if (c2 < -1 || c2 > 1) return [];
+  return [-1, 1].map((sign) => {
+    const q2 = sign * Math.acos(c2);
+    const q1 = Math.atan2(wy, wx) - Math.atan2(L2 * Math.sin(q2), L1 + L2 * Math.cos(q2));
+    const q3 = wrapAngle(phi - q1 - q2);          // whatever is left to reach phi
+    return [wrapAngle(q1), q2, q3];
+  });
+}
+
+/**
+ * Solve for a click. If the requested tool angle is unreachable, search for the
+ * nearest angle that is. Picks the elbow-up or elbow-down solution.
+ */
+function ik(tx, ty, phi, elbowUp = true) {
+  for (let d = 0; d <= 180; d += 1) {
+    for (const s of d === 0 ? [0] : [1, -1]) {
+      const p = phi + s * d * DEG;
+      const sols = ikSolutions(tx, ty, p);
+      if (!sols.length) continue;
+      const elbowY = (q) => Math.sin(q[0]);      // higher = elbow up
+      const [a, b] = sols;
+      const q = (elbowY(a) >= elbowY(b)) === elbowUp ? a : b;
+      return { q, phi: p, adjusted: d !== 0 };
+    }
+  }
+  return null;
 }
 
 /* ── Gripper geometry ───────────────────────────────────────── */
@@ -224,7 +255,7 @@ function FKLab() {
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-2">Gripper</h3>
             <p className="text-slate-400">
               White bar = palm · Two angled fingers = jaws · Dashed gap = open jaw aperture.
-              In Lab 03 you'll see the jaws close around the object.
+              In Lab 04 the jaws squeeze a real (simulated) cube, held only by friction.
             </p>
           </div>
         </div>
@@ -242,18 +273,24 @@ function IKLab() {
   const targetRef = useRef(null);
   const rafRef    = useRef(null);
   const lastTRef  = useRef(null);
-  const [ikStatus, setIkStatus] = useState('Click the canvas to set a target');
-  const [liveQ, setLiveQ]       = useState([...qRef.current]);
+  const [phiDeg, setPhiDeg]   = useState(-90);
+  const [elbowUp, setElbowUp] = useState(true);
+  const [solution, setSolution] = useState(null);   // { q, phi, adjusted } | { none: true }
+  const [check, setCheck]     = useState(null);     // FK check distance in px
+  const [liveQ, setLiveQ]     = useState([...qRef.current]);
 
   const redrawCanvas = useCallback(() => {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
     drawGrid(ctx); drawWorkspace(ctx);
     if (targetRef.current) drawTarget(ctx, targetRef.current.x, targetRef.current.y);
-    drawArm(ctx, qRef.current[0], qRef.current[1], qRef.current[2], '#f97316', true, false);
+    return drawArm(ctx, qRef.current[0], qRef.current[1], qRef.current[2], '#f97316', true, false);
   }, []);
 
-  const animateTo = useCallback((tq) => {
+  const animateTo = useCallback((goal) => {
+    // Turn each joint the short way round.
+    const start = qRef.current;
+    const tq = goal.map((g, i) => start[i] + wrapAngle(g - start[i]));
     const step = (now) => {
       if (!lastTRef.current) lastTRef.current = now;
       const dt = Math.min((now - lastTRef.current) / 1000, 0.05);
@@ -266,37 +303,62 @@ function IKLab() {
         return a + Math.sign(d) * Math.min(Math.abs(d), 4.0 * dt);
       });
       setLiveQ([...qRef.current]);
-      redrawCanvas();
-      if (!done) rafRef.current = requestAnimationFrame(step);
+      const pts = redrawCanvas();
+      if (!done) {
+        rafRef.current = requestAnimationFrame(step);
+      } else if (pts && targetRef.current) {
+        // Forward-kinematics check: where did the grip centre actually land?
+        setCheck(Math.hypot(pts.gripCenter.x - targetRef.current.x, pts.gripCenter.y - targetRef.current.y));
+      }
     };
     cancelAnimationFrame(rafRef.current);
     lastTRef.current = null;
+    setCheck(null);
     rafRef.current = requestAnimationFrame(step);
   }, [redrawCanvas]);
 
   useEffect(() => { redrawCanvas(); return () => cancelAnimationFrame(rafRef.current); }, [redrawCanvas]);
 
-  const handleClick = useCallback((e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const tx = (e.clientX - rect.left) * (CW / rect.width);
-    const ty = (e.clientY - rect.top)  * (CW / rect.height);
-    targetRef.current = { x: tx, y: ty };
-    const sol = ik(tx, ty);
+  const solve = useCallback((phi, up) => {
+    const t = targetRef.current;
+    if (!t) return;
+    const sol = ik(t.x, t.y, phi * DEG, up);
     if (!sol) {
-      setIkStatus('Out of workspace — no solution');
+      setSolution({ none: true });
+      setCheck(null);
       redrawCanvas();
       return;
     }
-    setIkStatus(`q1:${(sol[0]*RAD).toFixed(1)}°  q2:${(sol[1]*RAD).toFixed(1)}°  q3:${(sol[2]*RAD).toFixed(1)}°`);
-    animateTo(sol);
+    setSolution(sol);
+    animateTo(sol.q);
   }, [animateTo, redrawCanvas]);
+
+  const handleClick = useCallback((e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    targetRef.current = {
+      x: (e.clientX - rect.left) * (CW / rect.width),
+      y: (e.clientY - rect.top)  * (CW / rect.height),
+    };
+    solve(phiDeg, elbowUp);
+  }, [solve, phiDeg, elbowUp]);
+
+  const statusText = !solution
+    ? 'Click the canvas to set a target'
+    : solution.none
+      ? 'Out of reach at every tool angle — no solution'
+      : solution.adjusted
+        ? `Tool angle ${phiDeg}° can't reach; using ${(solution.phi * RAD).toFixed(0)}° instead`
+        : `Solved with tool angle ${phiDeg}°`;
 
   return (
     <div className="simulator-panel rounded-2xl p-6 space-y-5">
       <div>
         <span className="text-xs font-bold tracking-widest text-orange-400">LAB 02</span>
         <h2 className="text-xl font-semibold text-whiteHull mt-0.5">Inverse Kinematics</h2>
-        <p className="mt-1 text-sm text-slate-400">Click anywhere in the workspace — the arm solves 3-DOF IK and animates to the target.</p>
+        <p className="mt-1 text-sm text-slate-400">
+          Click anywhere in the workspace. The solver finds joint angles that put the gripper&apos;s grip
+          centre on the target, pointing at the tool angle you choose.
+        </p>
       </div>
       <div className="flex flex-col xl:flex-row gap-5">
         <div className="flex-shrink-0">
@@ -307,289 +369,52 @@ function IKLab() {
           <p className="text-xs text-slate-500 font-mono mt-2"><span className="text-orange-400">click</span> canvas to set target</p>
         </div>
         <div className="flex flex-col gap-3 flex-1 min-w-[220px]">
+          <div className="simulator-panel rounded-xl p-4 space-y-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400">Tool</h3>
+            <div>
+              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Tool angle φ</span>
+                <span className="font-mono text-orange-300">{phiDeg}°{phiDeg === -90 && ' (pointing down)'}</span>
+              </div>
+              <input type="range" min={-180} max={180} step={5} value={phiDeg}
+                onChange={(e) => { const v = +e.target.value; setPhiDeg(v); solve(v, elbowUp); }}
+                className="w-full h-1.5 accent-orange-400" />
+            </div>
+            <div className="flex gap-2 text-xs">
+              {[['Elbow up', true], ['Elbow down', false]].map(([label, up]) => (
+                <button key={label} onClick={() => { setElbowUp(up); solve(phiDeg, up); }}
+                  className={`rounded-lg px-3 py-1.5 transition ${elbowUp === up ? 'bg-orange-500 text-slate-900' : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="simulator-panel rounded-xl p-4">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-2">IK Status</h3>
-            <p className={`text-xs font-mono ${ikStatus.includes('no solution') ? 'text-red-400' : 'text-orange-300'}`}>{ikStatus}</p>
+            <p className={`text-xs font-mono ${solution?.none ? 'text-red-400' : solution?.adjusted ? 'text-amber-300' : 'text-orange-300'}`}>{statusText}</p>
+            {check !== null && (
+              <p className="mt-1 text-xs font-mono text-slate-400">
+                FK check: grip centre is <span className={check < 1 ? 'text-green-400' : 'text-red-400'}>{check.toFixed(2)} px</span> from the target
+              </p>
+            )}
           </div>
           <div className="simulator-panel rounded-xl p-4 font-mono text-xs">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-2 font-sans">Solved Joints</h3>
             <div className="space-y-0.5 text-slate-400">
               {['q1','q2','q3'].map((n,i) => (
                 <div key={n}><span className="text-slate-500">{n}: </span>
-                  <span className="text-orange-300">{(liveQ[i]*RAD).toFixed(2)}°</span></div>
+                  <span className="text-orange-300">{(wrapAngle(liveQ[i])*RAD).toFixed(2)}°</span></div>
               ))}
             </div>
           </div>
           <div className="simulator-panel rounded-xl p-4 text-xs text-slate-400">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-2">Algorithm</h3>
             <ol className="list-decimal list-inside space-y-1">
-              <li>Two-link IK: law of cosines for elbow angle</li>
-              <li>atan2 for base + shoulder angles</li>
-              <li>Wrist angle set to maintain tool orientation</li>
+              <li>Back off from the target along the tool angle φ by the last link + fingers to get the wrist point</li>
+              <li>Two-link IK to the wrist: law of cosines for q2 (two solutions: elbow up / down)</li>
+              <li>atan2 for q1, then q3 = φ − q1 − q2 so the gripper points at φ</li>
+              <li>If the wrist is out of reach, try the nearest tool angle that works</li>
             </ol>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
-   LAB 03 — Pick & Place
-   ══════════════════════════════════════════════════════════════ */
-
-// Object positions (where the grip centre should be when picking/placing)
-const OBJ_Y     = CY + 72;    // object centre y  (below base)
-const PICK_X    = CX - 128;
-const PLACE_X   = CX + 118;
-const PLAT_H    = 10;          // platform rect height
-const OBJ_HALF  = 9;           // half-size of drawn cube
-
-// IK targets: ee must be GRIP_LEN above the object (since grip centre = ee + fwd*GRIP_LEN,
-// and for a roughly-downward approach fwd ≈ (0,+1), grip centre ≈ (ee.x, ee.y + GRIP_LEN))
-const PICK_IK  = { x: PICK_X,  y: OBJ_Y - GRIP_LEN };
-const PLACE_IK = { x: PLACE_X, y: OBJ_Y - GRIP_LEN };
-
-const WPS = [
-  { pos: { x: PICK_IK.x,  y: PICK_IK.y  - 55 }, grip: false, label: 'Approach pick'    },
-  { pos: PICK_IK,                                  grip: false, label: 'Descend to pick'  },
-  { pos: null,              gripOnly: true,         grip: true,  label: 'Close gripper'    },
-  { pos: { x: PICK_IK.x,  y: PICK_IK.y  - 65 }, grip: true,  label: 'Lift object'      },
-  { pos: { x: PLACE_IK.x, y: PLACE_IK.y - 55 }, grip: true,  label: 'Move to place'    },
-  { pos: PLACE_IK,                                 grip: true,  label: 'Descend to place' },
-  { pos: null,              gripOnly: true,         grip: false, label: 'Open gripper'     },
-  { pos: { x: PLACE_IK.x, y: PLACE_IK.y - 65 }, grip: false, label: 'Retract'           },
-];
-
-function lerp(a, b, t) { return a + (b - a) * t; }
-function lerpQ(qa, qb, t) { return qa.map((v, i) => lerp(v, qb[i], t)); }
-
-function drawPlatform(ctx, x) {
-  const y = OBJ_Y + OBJ_HALF;
-  // surface
-  ctx.fillStyle = 'rgba(251,146,60,0.18)';
-  ctx.strokeStyle = 'rgba(251,146,60,0.55)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect?.(x - 32, y, 64, PLAT_H, 3) ?? ctx.rect(x - 32, y, 64, PLAT_H);
-  ctx.fill(); ctx.stroke();
-  // legs
-  [[x - 22, x - 16], [x + 16, x + 22]].forEach(([lx, rx]) => {
-    ctx.fillStyle = 'rgba(251,146,60,0.12)';
-    ctx.beginPath(); ctx.rect(lx, y + PLAT_H, rx - lx, 14); ctx.fill();
-  });
-}
-
-function drawObject(ctx, x, y, gripped) {
-  const s = OBJ_HALF;
-  ctx.save();
-  // glow when gripped
-  if (gripped) { ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 14; }
-  ctx.fillStyle   = gripped ? '#fbbf24' : '#b45309';
-  ctx.strokeStyle = gripped ? '#fef08a' : '#f59e0b';
-  ctx.lineWidth   = gripped ? 2.5 : 1.5;
-  ctx.beginPath();
-  ctx.roundRect?.(x - s, y - s, s * 2, s * 2, 2) ?? ctx.rect(x - s, y - s, s * 2, s * 2);
-  ctx.fill(); ctx.stroke();
-  // cross detail
-  ctx.strokeStyle = gripped ? 'rgba(254,240,138,0.4)' : 'rgba(251,191,36,0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(x - s + 2, y); ctx.lineTo(x + s - 2, y); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(x, y - s + 2); ctx.lineTo(x, y + s - 2); ctx.stroke();
-  ctx.restore();
-}
-
-function PickPlaceLab() {
-  const canvasRef = useRef(null);
-  const S = useRef({
-    q: [100*DEG, -50*DEG, -25*DEG],
-    wpIdx: -1, progress: 0,
-    grip: false, objPos: { x: PICK_X, y: OBJ_Y },
-    placed: false, running: false,
-    fromQ: [100*DEG, -50*DEG, -25*DEG], toQ: null,
-  });
-  const rafRef  = useRef(null);
-  const lastRef = useRef(null);
-  const [running, setRunning] = useState(false);
-  const [wpIdx,   setWpIdx]   = useState(-1);
-  const [grip,    setGrip]    = useState(false);
-  const [placed,  setPlaced]  = useState(false);
-
-  const redraw = useCallback(() => {
-    const ctx = canvasRef.current?.getContext('2d');
-    if (!ctx) return;
-    const s = S.current;
-    drawGrid(ctx); drawWorkspace(ctx);
-    drawPlatform(ctx, PICK_X);
-    drawPlatform(ctx, PLACE_X);
-    // platform labels
-    ctx.font = '9px monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(251,146,60,0.6)';
-    ctx.fillText('PICK',  PICK_X,  OBJ_Y + OBJ_HALF + PLAT_H + 22);
-    ctx.fillText('PLACE', PLACE_X, OBJ_Y + OBJ_HALF + PLAT_H + 22);
-    ctx.textAlign = 'start';
-
-    // draw free object only when not gripped
-    if (!s.grip) drawObject(ctx, s.objPos.x, s.objPos.y, false);
-
-    // draw arm (gets grip centre back)
-    const { gripCenter } = drawArm(ctx, s.q[0], s.q[1], s.q[2], '#f97316', true, s.grip);
-
-    // draw object at grip centre when held
-    if (s.grip) drawObject(ctx, gripCenter.x, gripCenter.y, true);
-
-    // HUD
-    const label = s.wpIdx >= 0 && s.wpIdx < WPS.length
-      ? WPS[s.wpIdx].label : (s.placed ? 'Done ✓' : 'Ready');
-    ctx.fillStyle = 'rgba(1,13,31,0.9)';
-    ctx.beginPath(); ctx.roundRect?.(8,8,162,30,5) ?? ctx.rect(8,8,162,30); ctx.fill();
-    ctx.font = '10px monospace';
-    ctx.fillStyle = s.running ? '#f97316' : (s.placed ? '#4ade80' : '#94a3b8');
-    ctx.fillText(label, 14, 27);
-  }, []);
-
-  const advanceTo = useCallback((nextIdx) => {
-    const s = S.current;
-    const wp = WPS[nextIdx];
-    if (!wp) return;
-    if (wp.gripOnly) {
-      // instant grip change — then advance past it
-      const prev = s.grip;
-      s.grip = wp.grip;
-      setGrip(wp.grip);
-      s.wpIdx = nextIdx;
-      setWpIdx(nextIdx);
-
-      // if releasing, drop object at current grip centre
-      if (prev && !wp.grip) {
-        const { ee } = fk(s.q[0], s.q[1], s.q[2]);
-        const a3 = s.q[0] + s.q[1] + s.q[2];
-        const { gc } = gripGeom(ee, a3, false);
-        s.objPos = { x: gc.x, y: gc.y };
-      }
-
-      advanceTo(nextIdx + 1);
-      return;
-    }
-    const sol = ik(wp.pos.x, wp.pos.y);
-    if (!sol) { s.running = false; setRunning(false); return; }
-    s.fromQ = [...s.q]; s.toQ = sol; s.progress = 0;
-    s.wpIdx = nextIdx; setWpIdx(nextIdx);
-  }, []);
-
-  const loop = useCallback((now) => {
-    if (!lastRef.current) lastRef.current = now;
-    const dt = Math.min((now - lastRef.current) / 1000, 0.05);
-    lastRef.current = now;
-    const s = S.current;
-
-    if (s.running && s.toQ) {
-      s.progress = Math.min(1, s.progress + dt * 1.9);
-      s.q = lerpQ(s.fromQ, s.toQ, s.progress);
-      if (s.progress >= 1) {
-        s.q = [...s.toQ];
-        const next = s.wpIdx + 1;
-        if (next >= WPS.length) {
-          s.running = false; s.placed = true;
-          setRunning(false); setPlaced(true); setWpIdx(WPS.length);
-        } else {
-          advanceTo(next);
-        }
-      }
-    }
-    redraw();
-    rafRef.current = requestAnimationFrame(loop);
-  }, [redraw, advanceTo]);
-
-  useEffect(() => {
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [loop]);
-
-  const startCycle = () => {
-    const s = S.current;
-    s.running = true; s.placed = false; s.grip = false;
-    s.objPos = { x: PICK_X, y: OBJ_Y };
-    s.q = [100*DEG, -50*DEG, -25*DEG];
-    s.wpIdx = -1; s.toQ = null; s.progress = 0;
-    lastRef.current = null;
-    setRunning(true); setWpIdx(-1); setGrip(false); setPlaced(false);
-    advanceTo(0);
-  };
-
-  const reset = () => {
-    const s = S.current;
-    s.running = false; s.placed = false; s.grip = false;
-    s.q = [100*DEG, -50*DEG, -25*DEG]; s.objPos = { x: PICK_X, y: OBJ_Y };
-    s.wpIdx = -1; s.toQ = null; s.progress = 0;
-    setRunning(false); setPlaced(false); setGrip(false); setWpIdx(-1);
-  };
-
-  return (
-    <div className="simulator-panel rounded-2xl p-6 space-y-5">
-      <div>
-        <span className="text-xs font-bold tracking-widest text-orange-400">LAB 03</span>
-        <h2 className="text-xl font-semibold text-whiteHull mt-0.5">Pick &amp; Place</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Watch the arm approach, close its jaws around the object, lift it, transfer, and release.
-          Each step uses IK to plan the joint trajectory.
-        </p>
-      </div>
-      <div className="flex flex-col xl:flex-row gap-5">
-        <div className="flex-shrink-0">
-          <div className="rounded-xl overflow-hidden"
-            style={{ width: CW, height: CW, border: '1px solid rgba(251,146,60,0.25)' }}>
-            <canvas ref={canvasRef} width={CW} height={CW} className="block" />
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 flex-1 min-w-[220px]">
-          <div className="simulator-panel rounded-xl p-4">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-3">Execute</h3>
-            <div className="flex flex-col gap-2">
-              <button onClick={startCycle} disabled={running}
-                className="rounded-lg bg-orange-500 py-2 text-sm font-semibold text-slate-950
-                           hover:bg-orange-400 disabled:opacity-40 transition">
-                ▶ Run Pick &amp; Place
-              </button>
-              <button onClick={reset}
-                className="rounded-lg bg-slate-800 py-2 text-sm text-slate-400 hover:bg-slate-700 transition">
-                Reset
-              </button>
-            </div>
-            <div className="mt-3 flex gap-2 flex-wrap text-xs">
-              <span className={`px-2 py-0.5 rounded-full font-mono transition-colors ${
-                grip ? 'bg-white/20 text-white font-bold' : 'bg-slate-800 text-slate-500'}`}>
-                {grip ? '⊏⊐ closed' : '⊏ · · ⊐ open'}
-              </span>
-              {placed && <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 font-mono">placed ✓</span>}
-            </div>
-          </div>
-          <div className="simulator-panel rounded-xl p-4">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-orange-400 mb-2">
-              Steps {wpIdx >= 0 ? `(${Math.min(wpIdx+1,WPS.length)}/${WPS.length})` : ''}
-            </h3>
-            <div className="flex flex-col gap-1">
-              {WPS.map((wp, i) => {
-                const done   = i < wpIdx;
-                const active = i === wpIdx && running;
-                return (
-                  <div key={i} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${
-                    active ? 'bg-orange-500/15 ring-1 ring-orange-500/40'
-                    : done  ? 'opacity-40' : 'bg-slate-800/40'}`}>
-                    <span className={`font-bold w-5 text-center ${
-                      done ? 'text-green-400' : active ? 'text-orange-400' : 'text-slate-500'}`}>
-                      {done ? '✓' : i+1}
-                    </span>
-                    <span className="text-slate-300">{wp.label}</span>
-                    {wp.gripOnly && (
-                      <span className={`ml-auto text-[10px] ${wp.grip ? 'text-white' : 'text-slate-400'}`}>
-                        {wp.grip ? '⊏⊐' : '⊏⊐ open'}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       </div>
@@ -602,10 +427,9 @@ function PickPlaceLab() {
    ══════════════════════════════════════════════════════════════ */
 const MANIP_LABS = [
   { num:'01', title:'Forward Kinematics', desc:'Drag joint sliders to see how angles map to end-effector position.', icon:'🦾' },
-  { num:'02', title:'Inverse Kinematics', desc:'Click the workspace — 3-DOF IK solves analytically and the arm animates to target.', icon:'🎯' },
-  { num:'03', title:'Pick & Place',       desc:'Full cycle: approach, jaw close, lift, transfer, jaw open. Gripper state is always visible.', icon:'📦' },
-  { num:'04', title:'Joint Control & Gravity', desc:'MuJoCo physics: torque motors, P / PD / gravity compensation, payloads and pushes.', icon:'⚙️' },
-  { num:'05', title:'Physical Pick & Place',   desc:'MuJoCo physics: the cube is held only by friction. Tune grip, mass, μ and speed until it slips.', icon:'🧲' },
+  { num:'02', title:'Inverse Kinematics', desc:'Click the workspace: 3-link IK puts the grip centre on the target at your chosen tool angle.', icon:'🎯' },
+  { num:'03', title:'Joint Control & Gravity', desc:'MuJoCo physics: torque motors, P / PD / gravity compensation, payloads and pushes.', icon:'⚙️' },
+  { num:'04', title:'Physical Pick & Place',   desc:'MuJoCo physics: the cube is held only by friction. Tune grip, mass, μ and speed until it slips.', icon:'🧲' },
 ];
 const cardV = {
   hidden:   { opacity: 0, y: 20 },
@@ -622,10 +446,14 @@ export default function ManipulationTab() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">Manipulation Domain</p>
             <h2 className="mt-2 text-2xl font-bold tracking-tight text-whiteHull">Robotic Arm Labs</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
-              Five labs: direct joint control, geometric IK and an autonomous
-              pick-and-place cycle, then the same arm with real physics in MuJoCo,
-              covering torque control, gravity and friction grasping.
+              Four labs: the geometry of the arm first (forward and inverse
+              kinematics), then the same arm with real physics in MuJoCo, covering
+              torque control, gravity and friction grasping.
             </p>
+            <Link to="/simulators/manipulation/v1"
+              className="mt-3 inline-block text-xs text-orange-300 transition hover:text-orange-200">
+              See the original v1 labs (2D canvas) and how they evolved →
+            </Link>
           </div>
           <div className="flex flex-col gap-3">
             {MANIP_LABS.map((c, i) => (
@@ -645,7 +473,6 @@ export default function ManipulationTab() {
       </div>
       <FKLab />
       <IKLab />
-      <PickPlaceLab />
       <Suspense fallback={<div className="simulator-panel rounded-2xl p-6 text-sm text-slate-400">Loading MuJoCo physics labs…</div>}>
         <MujocoArmLabs />
       </Suspense>

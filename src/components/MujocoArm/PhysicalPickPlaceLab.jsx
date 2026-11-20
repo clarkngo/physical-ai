@@ -122,8 +122,8 @@ export default function PhysicalPickPlaceLab() {
 
   return (
     <div className="simulator-panel space-y-5 rounded-2xl p-6">
-      <LabHeader num="05" title="Physical Pick & Place">
-        The Lab 03 cycle, but nothing is scripted to stick. The fingers squeeze the cube with a set force, and
+      <LabHeader num="04" title="Physical Pick & Place">
+        The classic pick-and-place cycle, but nothing is scripted to stick (in v1 the cube was simply attached to the gripper). The fingers squeeze the cube with a set force, and
         only friction holds it: each finger contact can resist up to μ × squeeze before the cube slides. Change
         the grip, mass, friction and speed, and see when the grasp fails.
       </LabHeader>
@@ -161,7 +161,7 @@ export default function PhysicalPickPlaceLab() {
             </div>
             <label className="flex items-center gap-2 text-xs text-slate-300">
               <input type="checkbox" checked={gravityComp} disabled={running} onChange={(e) => setGravityComp(e.target.checked)} className="accent-orange-500" />
-              Gravity compensation (see Lab 04)
+              Gravity compensation (see Lab 03)
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button onClick={run} disabled={!ready || running}
@@ -212,7 +212,7 @@ export default function PhysicalPickPlaceLab() {
         <ul className="list-disc space-y-1 pl-4">
           <li><span className="text-slate-200">Holding force:</span> two finger contacts can carry 2 · μ · F, which must be at least m · g. That gives the &quot;needed per finger&quot; figure.</li>
           <li><span className="text-slate-200">Moving costs grip:</span> lifting and stopping accelerate the cube, so a grip that holds it at rest can still slip on a fast cycle.</li>
-          <li><span className="text-slate-200">Motion:</span> the gripper moves along straight lines (inverse kinematics solved every step), and the arm tracks them with the PD controller from Lab 04.</li>
+          <li><span className="text-slate-200">Motion:</span> the gripper moves along straight lines (inverse kinematics solved every step), and the arm tracks them with the PD controller from Lab 03, using the same IK idea as Lab 02.</li>
           <li><span className="text-slate-200">Fingers:</span> position servos whose force is capped at the grip setting, so they squeeze with exactly that force once they touch the cube.</li>
         </ul>
       </div>
