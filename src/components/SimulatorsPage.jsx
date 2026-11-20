@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MaritimeSimulator from './MaritimeSimulator';
@@ -16,6 +16,9 @@ import ActionNavLab     from './ActionNavLab';
 import TfDriftLab       from './TfDriftLab';
 import ManipulationTab  from './ManipulationTab';
 import IsaacLabTab      from './IsaacLabTab';
+
+// Loaded on demand so the ~11 MB MuJoCo WebAssembly only downloads on this tab.
+const MujocoVolleyballLab = lazy(() => import('./MujocoVolleyball/MujocoVolleyballLab.jsx'));
 
 // ── Neural-network / sensor-fusion visualisation ──────────────────────────
 
@@ -147,6 +150,7 @@ const DOMAINS = [
   { id: 'robotics',     label: 'Robotics',     icon: '🤖', color: '#4ade80' },
   { id: 'manipulation', label: 'Manipulation', icon: '🦾', color: '#f97316' },
   { id: 'isaac',        label: 'Isaac Lab',    icon: '🤖', color: '#a78bfa' },
+  { id: 'mujoco',       label: 'MuJoCo',       icon: '🏐', color: '#facc15' },
 ];
 
 // ── Page ──────────────────────────────────────────────────────────────────
@@ -180,7 +184,7 @@ export default function SimulatorsPage() {
               Interactive Labs
             </h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {DOMAINS.map(d => (
               <button key={d.id} onClick={() => setDomain(d.id)}
                 style={domain === d.id ? { backgroundColor: d.color, color: '#0f172a' } : {}}
@@ -359,6 +363,18 @@ export default function SimulatorsPage() {
             exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
             className="space-y-6">
             <IsaacLabTab />
+          </motion.div>
+        )}
+
+        {/* ── MuJoCo content ───────────────────────────────────── */}
+        {domain === 'mujoco' && (
+          <motion.div key="mujoco"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }}
+            className="space-y-6">
+            <Suspense fallback={<div className="glass-card rounded-2xl p-6 text-sm text-slate-400">Loading MuJoCo lab…</div>}>
+              <MujocoVolleyballLab />
+            </Suspense>
           </motion.div>
         )}
       </AnimatePresence>
