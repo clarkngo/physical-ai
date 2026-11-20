@@ -1,3 +1,7 @@
+// ARCHIVED — Maritime Collision Avoidance lab v1, kept verbatim as of commit 8ff5536 (tag maritime-collision-v1-scripted).
+// Shown at #/simulators/maritime/v1 to document how the lab evolved.
+// Do not fix bugs here; the live version is src/components/MaritimeCollision/.
+
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -10,6 +10,7 @@ import AviationSimulatorsPage from './pages/AviationSimulatorsPage.jsx';
 import MaritimeExplorerPage from './pages/MaritimeExplorerPage.jsx';
 import MaritimeHubPage from './pages/MaritimeHubPage.jsx';
 import ManipulationArchivePage from './pages/ManipulationArchivePage.jsx';
+import MaritimeArchivePage from './pages/MaritimeArchivePage.jsx';
 
 // ── Sonar ping on the brand logo ──────────────────────────────────────────
 function NavBrand() {
@@ -119,6 +120,14 @@ function ManipulationArchiveRoute() {
   );
 }
 
+function MaritimeArchiveRoute() {
+  return (
+    <PageWrapper>
+      <MaritimeArchivePage />
+    </PageWrapper>
+  );
+}
+
 function RosPageWrapper() {
   return (
     <PageWrapper>
@@ -171,6 +180,7 @@ export default function App() {
           <Route path="/autonomous"          element={<AutonomousPageWrapper />} />
           <Route path="/simulators"          element={<SimPage />} />
           <Route path="/simulators/manipulation/v1" element={<ManipulationArchiveRoute />} />
+          <Route path="/simulators/maritime/v1" element={<MaritimeArchiveRoute />} />
           <Route path="/simulators/:domain"  element={<SimPage />} />
           <Route path="/ros"                 element={<RosPageWrapper />} />
           <Route path="/ros/:tool"           element={<RosPageWrapper />} />

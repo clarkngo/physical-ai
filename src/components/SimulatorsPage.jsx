@@ -1,9 +1,9 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import MaritimeSimulator from './MaritimeSimulator';
 import SonarInterpretationSimulator from './SonarInterpretationSimulator';
-import CollisionAvoidanceSimulator from './CollisionAvoidanceSimulator';
+import CollisionAvoidanceLab from './MaritimeCollision/CollisionAvoidanceLab.jsx';
 import FlightPathOptimizer from './FlightPathOptimizer';
 import AdsbIntegritySimulator from './AdsbIntegritySimulator';
 import TcasConflictSimulator from './TcasConflictSimulator';
@@ -118,7 +118,7 @@ function NeuralNetViz() {
 const MARITIME_LABS = [
   { num: '01', title: 'Route Optimization Lab',   desc: 'Compare baseline and AI-optimized routing with live fuel and schedule metrics.', icon: '🧭' },
   { num: '02', title: 'Sonar Interpretation Lab',  desc: 'Observe noisy signals on a live radar and tune classification confidence thresholds.', icon: '📡' },
-  { num: '03', title: 'Collision Avoidance Lab',   desc: "Watch the AI re-route an own ship in a bird's-eye view to maintain a safe CPA.", icon: '⚠️' },
+  { num: '03', title: 'Collision Avoidance Lab',   desc: 'Steer a ferry, container ship or tanker through head-on, crossing and overtaking encounters under the COLREGs, with real turning dynamics and measured CPA.', icon: '⚠️' },
 ];
 
 const AVIATION_LABS = [
@@ -222,6 +222,10 @@ export default function SimulatorsPage() {
                     Three interactive labs examine how AI agents sense, reason, and act in real
                     maritime conditions — from fuel-optimal routing to autonomous collision avoidance.
                   </p>
+                  <Link to="/simulators/maritime/v1"
+                    className="mt-3 inline-block text-xs text-pacificCyan transition hover:brightness-125">
+                    See the original Collision Avoidance lab (v1) and how it evolved →
+                  </Link>
                 </div>
                 <NeuralNetViz />
               </div>
@@ -246,7 +250,7 @@ export default function SimulatorsPage() {
 
             <MaritimeSimulator />
             <SonarInterpretationSimulator />
-            <CollisionAvoidanceSimulator />
+            <CollisionAvoidanceLab />
           </motion.div>
         )}
 
