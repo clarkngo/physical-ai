@@ -3,6 +3,7 @@ import { getMujoco } from '../MujocoShared/mujocoLoader.js';
 import { CourtRenderer, CAMERA_VIEWS } from './courtRenderer.js';
 import { PRESETS, SAMPLE_HZ, VolleyballSim, randomServe } from './volleyballSim.js';
 import { BALL, COURT } from './volleyballScene.js';
+import CameraTestPanel from './CameraTestPanel.jsx';
 
 const ACCENT = '#facc15';
 const BATCH_SIZE = 60;
@@ -83,6 +84,7 @@ export default function MujocoVolleyballLab() {
   const [events, setEvents] = useState([]);
   const [csv, setCsv] = useState('');
   const [batch, setBatch] = useState({ running: false, results: [] });
+  const [cameraTestRunning, setCameraTestRunning] = useState(false);
 
   // ── Load MuJoCo (WASM) and build the three.js view ─────────────────────
   useEffect(() => {
@@ -169,7 +171,7 @@ export default function MujocoVolleyballLab() {
     playbackRef.current = slowMo ? 0.2 : 1;
   }, [slowMo]);
 
-  const busy = status !== 'ready' || running || batch.running;
+  const busy = status !== 'ready' || running || batch.running || cameraTestRunning;
 
   const choosePreset = (key) => {
     setPresetKey(key);
@@ -484,6 +486,67 @@ export default function MujocoVolleyballLab() {
           </div>
         )}
       </div>
+
+      {/* Research gap */}
+      <div className="glass-card rounded-2xl p-5 text-sm leading-relaxed text-slate-300">
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: ACCENT }}>
+          Why a ground-truth sandbox: the accuracy gap
+        </p>
+        <p className="mt-3 max-w-3xl">
+          Electronic line calling already exists in volleyball: FIVB has used a Hawk-Eye challenge system at
+          major events since about 2014, and at the Olympics since Rio 2016. What we could not find
+          (literature search, November 2026) is any published, independent figure for how accurate it is on
+          volleyball in/out calls. The numbers that are public are operational: about a quarter of challenged
+          calls overturned, about 30 s per review, and about $30,000 per tournament (2016). An overturn rate
+          measures how often referees were wrong, not how often the system is.
+        </p>
+        <ul className="mt-3 list-disc space-y-1.5 pl-5">
+          <li>
+            <span className="text-whiteHull">No public certification.</span> In tennis, line-calling systems
+            are tested by the ITF before approval, which is where published error figures come from. FIVB has
+            no published equivalent, and the vendor has no reason to publish volleyball error rates.
+          </li>
+          <li>
+            <span className="text-whiteHull">The true answer is hard to measure.</span> A ball is in if any
+            part touches the line. A 21 cm ball flattens on landing, so close calls depend on whether its
+            contact patch reached a 5 cm line. Confirming that needs high-speed cameras looking along the line.
+            On beach courts the lines are ropes on sand that move.
+          </li>
+          <li>
+            <span className="text-whiteHull">No public dataset.</span> Volleyball vision research focuses on
+            player actions and ball tracking for match statistics. Landing-point accuracy is reported for
+            table tennis (for example 78.5% landing-point accuracy in one 2023 study), and single-camera
+            line-calling has been shown to work without volleyball figures. The closest volleyball item we
+            found is a patent for an in/out judging device, which reports no accuracy.
+          </li>
+          <li>
+            <span className="text-whiteHull">Where this sandbox fits.</span> MuJoCo knows exactly where every
+            ball landed, so a vision pipeline can be scored against it with a true error figure. That covers
+            only part of the problem: a claim for real courts still has to be checked against labelled
+            high-speed footage of real landings.
+          </li>
+        </ul>
+        <p className="mt-3 text-xs text-slate-500">
+          Sources:{' '}
+          {[
+            ['AP on the Rio 2016 challenge system', 'https://www.nbcbayarea.com/news/sports/volleyball_replay_challenge_system_at_olympics_for_first_time/2004185/'],
+            ['VolleyMob on FIVB Hawk-Eye', 'https://volleymob.com/?p=14157'],
+            ['Monocular line calling (arXiv 2107.09255)', 'https://arxiv.org/pdf/2107.09255.pdf'],
+            ['Table tennis edge-ball in/out (CEUR-WS 3459)', 'https://ceur-ws.org/Vol-3459/paper9.pdf'],
+            ['Table tennis landing points (Sci. Rep. 2023)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10673905'],
+            ['US patent 10,688,342', 'https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/10688342'],
+          ].map(([label, href], i) => (
+            <span key={href}>
+              {i > 0 && ' · '}
+              <a href={href} target="_blank" rel="noreferrer" className="text-slate-400 underline decoration-slate-600 hover:text-yellow-200">
+                {label}
+              </a>
+            </span>
+          ))}
+        </p>
+      </div>
+
+      <CameraTestPanel simRef={simRef} disabled={busy} onRunningChange={setCameraTestRunning} />
 
       {/* How it works */}
       <div className="glass-card rounded-2xl p-5 text-sm leading-relaxed text-slate-300">
